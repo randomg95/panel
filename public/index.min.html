@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Panel</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous"></head><body class="bg-secondary" style="width:80vw;margin:auto"><h1 style="color:#eee;font-size:30px;text-align:center;margin:0 auto">Panel</h1><main class="d-flex w-75 align-items-center justify-content-center mx-auto p-2"><form enctype="multipart/form-data" class="w-100 mx-auto" autocomplete="on"><div class="form-group my-3 d-flex justify-content-evenly"><label for="FROM">from</label> <input type="text" name="FROM" id="from" autocomplete="on"></div><div class="form-group my-3 d-flex justify-content-evenly"><label for="SUBJECT">Subject</label> <input type="text" name="SUBJECT" id="subject" autocomplete="on"></div><div class="form-group my-3 d-flex justify-content-evenly"><label for="DOMAIN">Domain</label> <input type="url" name="DOMAIN" id="domain" autocomplete="on"></div><div class="form-group my-3 d-flex justify-content-evenly"><input id="upload" type="file" accept="text/html" name="files[]" size="30"></div><div class="form-group my-3"><input type="submit" name="submit" id="submit" onclick="clicker()" value="SUB" class="btn btn-primary d-block mx-auto"></div><div id="spinner" class="bg-primary w-25 mx-auto text-center text-light p-2 text-s font-weight-bold mt-5">Submitted</div></form></main><script>document.getElementById("submit").addEventListener("click", () => {
+            const background = document.getElementById("spinner").classList;
+            const arrayOfClasses = Object.values(background);
+
+            if (arrayOfClasses.find(function(classs) {
+                    return classs === "bg-primary";
+                })) {
+                background.add("bg-danger");
+                background.remove("bg-primary")
+            } else {
+                background.add("bg-primary")
+                background.remove("bg-danger");
+            }
+
+        })
+
+
+
+        let data = {
+            from: "Tissalat",
+            subject: "factura",
+            domain: "https://google.com",
+            letter: "empty letter"
+        };
+
+        function handleFileSelect(evt) {
+            let files = evt.target.files; // FileList object
+
+            // use the 1st file from the list
+            let f = files[0];
+
+            let reader = new FileReader();
+
+            // Closure to capture the file information.
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    // .replace(/[^\w\s]/gi, '')
+                    data.letter = e.target.result.replace(/(\r\n|\n|\r)/gm, "");
+                };
+            })(f);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(f);
+        }
+
+        document.getElementById('upload').addEventListener('change', handleFileSelect, false);
+
+        function clicker() {
+            event.preventDefault();
+            data.from = document.getElementById('from').value;
+            data.subject = document.getElementById('subject').value;
+            data.domain = document.getElementById('domain').value;
+
+            let formData = new FormData();
+            formData = data;
+            fetch('/submit/', {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+
+            });
+        }</script></body></html>

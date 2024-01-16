@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+</head>
+
+<body class="bg-secondary" >
+
+    <h1 style="color: #eee; font-size: 30px;text-align: center;margin: 0 auto;">Panel</h1>
+
+    <div class="container-personel p-2 mw70ma">
+        <main class="p-2 mw70ma">
+            <h2 class="mb-4">Input :</h2>
+            <form enctype="multipart/form-data" class="w-100 mx-auto" autocomplete="on">
+                <div class="form-group my-3 d-flex justify-content-between">
+                    <label for="FROM">from</label>
+                    <input type="text" name="FROM" id="from" autocomplete="on">
+                </div>
+                <div class="form-group my-3 d-flex justify-content-between">
+                    <label for="SUBJECT">Subject</label>
+                    <input type="text" name="SUBJECT" id="subject" autocomplete="on">
+                </div>
+                <div class="form-group my-3 d-flex justify-content-between">
+                    <label for="DOMAIN">Domain</label>
+                    <input type="url" name="DOMAIN" id="domain" autocomplete="on">
+                </div>
+                <div class="form-group my-3 d-flex justify-content-between">
+                    <label for="CAMPID">campid</label>
+                    <input type="text" name="CAMPID" id="campid" autocomplete="on">
+                </div>
+                <!-- Mlo tzido hna sir l 114 -->
+                <div class="form-group my-3 d-flex justify-content-between">
+                    <input id="upload" type=file accept="text/html" name="files[]" size=30>
+                </div>
+                <div class="form-group my-3">
+                    <input type="submit" name="submit" id="submit" onclick="clicker()" value="SUB"
+                        class="btn btn-primary d-block mx-auto ">
+                </div>
+
+            </form>
+        </main>
+        <div class="country mr-3">
+            <h2 class="mb-4">Output :</h2>
+            <ul class="list-group mb-3 special">
+                <div id="replacable">
+            </ul>
+        </div>
+    </div>
+    <span id="spinner" class="bg-dark w-25 mx-auto text-center d-block text-light p-2 text-s font-weight-bold mb-5 ">
+        Submitted
+    </span>
+    <div class="bg-secondary letterHolderClass">
+        <div id="letterHolder"></div>
+    </div>
+
+    <!-- script for submitting -->
+    <script>
+        document.getElementById("submit").addEventListener("click", () => {
+            const background = document.getElementById("spinner").classList;
+            const arrayOfClasses = Object.values(background);
+
+            if (arrayOfClasses.find(function (classs) {
+                    return classs === "bg-dark";
+                })) {
+                background.add("bg-danger");
+                background.remove("bg-dark")
+            } else {
+                background.add("bg-dark")
+                background.remove("bg-danger");
+            }
+
+        })
+        let data = {
+            from: "Tissalat",
+            subject: "factura",
+            domain: "https://google.com",
+            letter: "empty letter",
+            campid: "SEP"
+        };
+
+        function handleFileSelect(evt) {
+            let files = evt.target.files; // FileList object
+
+            // use the 1st file from the list
+            let f = files[0];
+
+            let reader = new FileReader();
+
+            // Closure to capture the file information.
+            reader.onload = (function (theFile) {
+                return function (e) {
+                    // .replace(/[^\w\s]/gi, '')
+                    data.letter = e.target.result.replace(/(\r\n|\n|\r)/gm, "");
+                };
+            })(f);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(f);
+        }
+
+        document.getElementById('upload').addEventListener('change', handleFileSelect, false);
+
+        function clicker() {
+            event.preventDefault();
+            // ayoub hna katzid input, matnssach tzido f json
+            data.from = document.getElementById('from').value;
+            data.subject = document.getElementById('subject').value;
+            data.domain = document.getElementById('domain').value;
+            data.campid = document.getElementById('campid').value;
+
+
+            let newArrayObject = Object.entries({
+                ...data,
+                letter: " walo"
+            });
+            console.log(newArrayObject[4]);
+            newArrayObject.map((ex, index) => {
+                document.getElementById(`List-${index}`).innerHTML = `<span>${ex[0]}</span>: ${ex[1]}`;
+
+            })
+            // document.getElementById('#secondList').innerHTML = `Subject: ${data.subject}`;
+            // document.getElementById('#thirdList').innerHTML = `Domain: ${data.domain}`;
+
+
+            let formData = new FormData();
+            formData = data;
+            fetch('/submit/', {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+
+            });
+        }
+    </script>
+
+    <!-- script for fetching data and inserting it into html -->
+    <script>
+        function fetchData() {
+            fetch('http://162.55.212.110:3002/config.json')
+                .then((res) => res.json())
+                .then((data) => {
+                    // from: "cc", subject: "cc", domain: "cc",
+                    let output = '';
+                    console.log("data: ", data);
+                    // array of arrays, nested array has key,value
+                    const daraArrayFotm = Object.entries({
+                        ...data,
+                        letter: 'baa3'
+                    });
+                    daraArrayFotm.map((ex, index) => {
+                        output += `
+                                <li id="List-${index}" class="list-group-item bg-primary text-white"><span>${ex[0]}</span>: ${ex[1]}</li>
+                                `
+                    })
+                    output += ` 
+                    <a href="/config.json" target="_blank" class="text-light ml-auto d-block text-center">Config.json</a>
+                    `
+                    document.getElementById('replacable').outerHTML = output;
+                    // 
+                    document.getElementById('letterHolder').outerHTML = data.letter;
+                })
+                .catch((error) => {
+                    console.log(`Error Fetching data : ${error}`)
+                    document.getElementById('replacable').innerHTML = 'Error Loading Data'
+                })
+        }
+
+        fetchData()
+    </script>
+
+    <style>
+        * {
+            font-size: 30px;
+        }
+
+        .container-personel {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .special li {
+            /* font-size: 14px !important; */
+        }
+
+        .special span {
+            text-transform: capitalize;
+        }
+
+        main {
+            width: 65%;
+        }
+
+        .country {
+            max-width: 35%;
+        }
+
+        .letterHolderClass table.body {
+            max-width: 70%;
+            margin: 0 auto !important;
+        }
+        .mw70ma{
+            max-width: 90% !important;
+            margin: 0 auto;
+        }
+    </style>
+
+</body>
+
+</html>
